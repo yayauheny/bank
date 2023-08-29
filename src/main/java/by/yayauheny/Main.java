@@ -1,5 +1,6 @@
 package by.yayauheny;
 
+import by.yayauheny.dao.BankDao;
 import by.yayauheny.entity.Bank;
 import by.yayauheny.util.ConnectionManager;
 
@@ -13,7 +14,9 @@ public class Main {
     public static void main(String[] args) {
         System.out.println("Hello bank!");
 
-        testFindAll();
+        BankDao.getInstance().findById(1);
+
+        System.out.println("End of programm");
     }
 
     public static void testFindAll() {

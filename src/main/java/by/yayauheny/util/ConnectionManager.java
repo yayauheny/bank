@@ -4,6 +4,7 @@ import com.zaxxer.hikari.HikariConfig;
 import com.zaxxer.hikari.HikariDataSource;
 import lombok.experimental.UtilityClass;
 
+import javax.sql.DataSource;
 import java.sql.Connection;
 import java.sql.SQLException;
 
@@ -11,7 +12,7 @@ import java.sql.SQLException;
 public class ConnectionManager {
 
     private static final HikariConfig config = new HikariConfig("src/main/resources/application.properties");
-    private static final HikariDataSource ds = new HikariDataSource(config);
+    private static final DataSource ds = new HikariDataSource(config);
 
     public static Connection getConnection() throws SQLException {
         return ds.getConnection();
