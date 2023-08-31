@@ -50,7 +50,7 @@ class CurrencyDaoTest {
 
     @Test
     void shouldUpdateCurrencyCorrectly() {
-        USD_CURRENCY.setCurrencyRate(new BigDecimal("3.1800"));
+        USD_CURRENCY.setCurrencyRate(new BigDecimal("3.18"));
 
         currencyDao.update(USD_CURRENCY);
         Optional<Currency> actualResult = currencyDao.findById(USD_CURRENCY.getId());

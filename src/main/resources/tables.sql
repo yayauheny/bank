@@ -11,8 +11,11 @@ CREATE TABLE currency
 (
     id            INT GENERATED ALWAYS AS IDENTITY PRIMARY KEY,
     currency_code VARCHAR(3) UNIQUE NOT NULL,
-    currency_rate NUMERIC(16, 4)    NOT NULL
+    currency_rate NUMERIC(16, 2)    NOT NULL
 );
+
+D
+
 
 CREATE TABLE users
 (
