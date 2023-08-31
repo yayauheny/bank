@@ -16,5 +16,4 @@ public class Account {
     private Integer currencyId;
     private LocalDate createdAt;
     private BigDecimal balance;
-    private Integer userId;
 }

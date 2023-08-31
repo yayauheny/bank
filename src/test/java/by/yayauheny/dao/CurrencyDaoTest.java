@@ -50,12 +50,14 @@ class CurrencyDaoTest {
 
     @Test
     void shouldUpdateCurrencyCorrectly() {
-        USD_CURRENCY.setCurrencyRate(new BigDecimal("3.18"));
+        currencyDao.save(TEST_CURRENCY);
+        TEST_CURRENCY.setCurrencyRate(new BigDecimal("555555.99"));
 
-        currencyDao.update(USD_CURRENCY);
-        Optional<Currency> actualResult = currencyDao.findById(USD_CURRENCY.getId());
+        currencyDao.update(TEST_CURRENCY);
+        Optional<Currency> actualResult = currencyDao.findById(TEST_CURRENCY.getId());
 
         assertThat(actualResult).isPresent();
-        assertEquals(USD_CURRENCY, actualResult.get());
+        assertEquals(TEST_CURRENCY, actualResult.get());
+        currencyDao.delete(TEST_CURRENCY.getId());
     }
 }

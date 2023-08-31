@@ -14,9 +14,6 @@ CREATE TABLE currency
     currency_rate NUMERIC(16, 2)    NOT NULL
 );
 
-D
-
-
 CREATE TABLE users
 (
     id            INT GENERATED ALWAYS AS IDENTITY PRIMARY KEY,
@@ -64,7 +61,17 @@ CREATE TABLE account_transaction
     PRIMARY KEY (account_id, transaction_id)
 );
 
+INSERT INTO bank(name, address, department)
+VALUES ('BELINVEST', 'Kalvariyskaya 14', 'MINSK-12'),
+       ('BELARUSBANK', 'Lenina 32, 5', 'MINSK-153');
 
+INSERT INTO currency(currency_code, currency_rate)
+VALUES ('USD', 3.22),
+       ('EUR', 3.49);
+
+INSERT INTO users(full_name, date_of_birth, address)
+VALUES ('Ivanov Ivan Ivanovich', '1993.05.10', 'Minsk, Belarus'),
+       ('Pollo Andrew Johnson', '2000.11.3', 'New York, USA');
 
 
 

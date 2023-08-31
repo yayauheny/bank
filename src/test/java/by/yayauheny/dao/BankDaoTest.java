@@ -49,18 +49,14 @@ class BankDaoTest {
 
     @Test
     void shouldUpdateBankDepartmentCorrectly() {
-        BELINVESTBANK.setDepartment("555");
+        bankDao.save(TEST_BANK);
+        TEST_BANK.setDepartment("555");
 
-        bankDao.update(BELINVESTBANK);
-        Optional<Bank> actualResult = bankDao.findById(BELINVESTBANK.getId());
+        bankDao.update(TEST_BANK);
+        Optional<Bank> actualResult = bankDao.findById(TEST_BANK.getId());
 
         assertThat(actualResult).isPresent();
-        assertEquals(BELINVESTBANK, actualResult.get());
+        assertEquals(TEST_BANK, actualResult.get());
+        bankDao.delete(TEST_BANK.getId());
     }
-
-    @Test
-    void update() {
-    }
-
-
 }

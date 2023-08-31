@@ -49,13 +49,14 @@ class UserDaoTest {
 
     @Test
     void shouldUpdateUserCorrectly() {
-        IVAN_USER.setAddress("Moscow, Russia");
+        userDao.save(TEST_USER);
+        TEST_USER.setAddress("Moscow, Russia");
 
-        userDao.update(IVAN_USER);
-        Optional<User> actualResult = userDao.findById(IVAN_USER.getId());
+        userDao.update(TEST_USER);
+        Optional<User> actualResult = userDao.findById(TEST_USER.getId());
 
         assertThat(actualResult).isPresent();
-        assertEquals(IVAN_USER, actualResult.get());
+        assertEquals(TEST_USER, actualResult.get());
+        userDao.delete(TEST_USER.getId());
     }
-
 }
