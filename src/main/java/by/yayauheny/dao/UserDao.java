@@ -20,7 +20,7 @@ import java.util.Optional;
 @NoArgsConstructor(access = AccessLevel.PRIVATE)
 public class UserDao implements Dao<Integer, User> {
 
-    private Integer accountId;
+    public static final UserDao userDao = new UserDao();
     private static final String FIND_BY_ID = """
             SELECT * FROM users
             WHERE id=?;
@@ -43,7 +43,6 @@ public class UserDao implements Dao<Integer, User> {
             DELETE FROM users
             WHERE id = ?;
             """;
-    public static final UserDao userDao = new UserDao();
 
     @Override
     @SneakyThrows
@@ -51,7 +50,7 @@ public class UserDao implements Dao<Integer, User> {
         try (Connection connection = ConnectionManager.getConnection();
              PreparedStatement preparedStatement = connection.prepareStatement(FIND_BY_ID)) {
 
-            preparedStatement.setInt(1, id);
+            preparedStatement.setObject(1, id);
             ResultSet resultSet = preparedStatement.executeQuery();
 
             return resultSet.next()
@@ -118,7 +117,7 @@ public class UserDao implements Dao<Integer, User> {
     public boolean delete(Integer id) {
         try (Connection connection = ConnectionManager.getConnection();
              PreparedStatement preparedStatement = connection.prepareStatement(DELETE_BY_ID)) {
-            preparedStatement.setInt(1, id);
+            preparedStatement.setObject(1, id);
 
             return preparedStatement.executeUpdate() > 0;
         }

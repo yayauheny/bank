@@ -51,7 +51,7 @@ public class AccountDao implements Dao<Integer, Account> {
         try (Connection connection = ConnectionManager.getConnection();
              PreparedStatement preparedStatement = connection.prepareStatement(FIND_BY_ID)) {
 
-            preparedStatement.setInt(1, id);
+            preparedStatement.setObject(1, id);
             ResultSet resultSet = preparedStatement.executeQuery();
 
             return resultSet.next()
@@ -120,7 +120,7 @@ public class AccountDao implements Dao<Integer, Account> {
     public boolean delete(Integer id) {
         try (Connection connection = ConnectionManager.getConnection();
              PreparedStatement preparedStatement = connection.prepareStatement(DELETE_BY_ID)) {
-            preparedStatement.setInt(1, id);
+            preparedStatement.setObject(1, id);
 
             return preparedStatement.executeUpdate() > 0;
         }
