@@ -18,5 +18,8 @@ public class Transaction {
     private Integer currencyId;
     private Integer receiverAccountId;
     private Integer senderAccountId;
+    private Currency currency;
+    private Account receiver;
+    private Account sender;
     private LocalDate createdAt;
 }

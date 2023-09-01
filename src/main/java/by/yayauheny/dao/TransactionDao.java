@@ -30,6 +30,12 @@ public class TransactionDao implements Dao<Integer, Transaction> {
     private static final String FIND_ALL_BY_ID = """
             SELECT * FROM transaction;
             """;
+    private static final String FIND_ALL_BY_ACCOUNT_ID = """
+            SELECT * FROM transaction
+            WHERE (transaction.receiver_account_id = ?
+               OR transaction.sender_account_id = ?)
+              AND transaction.status = 'COMPLETED'
+            """;
     private static final String SAVE = """
             INSERT INTO transaction(type, status, description, amount, created_at, currency_id, receiver_account_id, sender_account_id)
             VALUES (?,?,?,?,?,?,?,?)
@@ -72,6 +78,24 @@ public class TransactionDao implements Dao<Integer, Transaction> {
         try (Connection connection = ConnectionManager.getConnection();
              PreparedStatement preparedStatement = connection.prepareStatement(FIND_ALL_BY_ID)) {
 
+            ResultSet resultSet = preparedStatement.executeQuery();
+            List<Transaction> transactions = new ArrayList<>();
+
+            while (resultSet.next()) {
+                transactions.add(buildTransaction(resultSet));
+            }
+
+            return transactions;
+        }
+    }
+
+    @SneakyThrows
+    public List<Transaction> findAllByAccountId(Integer accountId) {
+        try (Connection connection = ConnectionManager.getConnection();
+             PreparedStatement preparedStatement = connection.prepareStatement(FIND_ALL_BY_ACCOUNT_ID)) {
+
+            preparedStatement.setObject(1, accountId);
+            preparedStatement.setObject(2, accountId);
             ResultSet resultSet = preparedStatement.executeQuery();
             List<Transaction> transactions = new ArrayList<>();
 

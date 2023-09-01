@@ -4,7 +4,6 @@ CREATE TABLE bank
     name       VARCHAR(128) UNIQUE NOT NULL,
     address    VARCHAR(128) UNIQUE NOT NULL,
     department VARCHAR(32) UNIQUE  NOT NULL
-
 );
 
 CREATE TABLE currency
@@ -28,17 +27,13 @@ CREATE TABLE account
     bank_id     INT       NOT NULL REFERENCES bank (id)
         ON DELETE CASCADE
         ON UPDATE CASCADE,
+    user_id     INT       NOT NULL REFERENCES users (id)
+        ON DELETE CASCADE
+        ON UPDATE CASCADE,
     currency_id INT       NOT NULL REFERENCES currency (id)
         ON UPDATE CASCADE,
     balance     NUMERIC(16, 2),
     created_at  TIMESTAMP NOT NULL
-);
-
-CREATE TABLE users_account
-(
-    user_id    INT REFERENCES users (id),
-    account_id INT REFERENCES account (id),
-    PRIMARY KEY (user_id, account_id)
 );
 
 CREATE TABLE transaction
@@ -49,16 +44,13 @@ CREATE TABLE transaction
     description         VARCHAR(128)   NOT NULL,
     amount              NUMERIC(16, 2) NOT NULL,
     created_at          TIMESTAMP      NOT NULL,
-    currency_id         INT            NOT NULL REFERENCES currency (id),
-    receiver_account_id INT            NOT NULL REFERENCES users (id),
+    currency_id         INT            NOT NULL REFERENCES currency (id)
+        ON DELETE NO ACTION
+        ON UPDATE CASCADE,
+    receiver_account_id INT            NOT NULL REFERENCES users (id)
+        ON DELETE CASCADE
+        ON UPDATE CASCADE,
     sender_account_id   INT REFERENCES users (id)
-);
-
-CREATE TABLE account_transaction
-(
-    account_id     INT REFERENCES account (id),
-    transaction_id INT REFERENCES transaction (id),
-    PRIMARY KEY (account_id, transaction_id)
 );
 
 INSERT INTO bank(name, address, department)
