@@ -132,6 +132,29 @@ public class TransactionDao implements Dao<Integer, Transaction> {
             return transaction;
         }
     }
+    @SneakyThrows
+    public Transaction save(Transaction transaction, Connection connection) {
+        try (PreparedStatement preparedStatement = connection.prepareStatement(SAVE, Statement.RETURN_GENERATED_KEYS)) {
+
+            preparedStatement.setString(1, transaction.getType().name());
+            preparedStatement.setString(2, transaction.getStatus().name());
+            preparedStatement.setString(3, transaction.getDescription());
+            preparedStatement.setBigDecimal(4, transaction.getAmount());
+            preparedStatement.setObject(5, transaction.getCreatedAt());
+            preparedStatement.setObject(6, transaction.getCurrencyId());
+            preparedStatement.setObject(7, transaction.getReceiverAccountId());
+            preparedStatement.setObject(8, transaction.getSenderAccountId());
+
+            preparedStatement.executeUpdate();
+            ResultSet keys = preparedStatement.getGeneratedKeys();
+
+            if (keys.next()) {
+                transaction.setId(keys.getObject("id", Integer.class));
+            }
+
+            return transaction;
+        }
+    }
 
     @Override
     @SneakyThrows
