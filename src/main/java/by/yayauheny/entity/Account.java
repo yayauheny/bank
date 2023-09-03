@@ -14,7 +14,9 @@ public class Account {
 
     private Integer id;
     private Integer bankId;
+    private Bank bank;
     private Integer currencyId;
+    private Currency currency;
     private LocalDate createdAt;
     private BigDecimal balance;
     private Integer userId;
