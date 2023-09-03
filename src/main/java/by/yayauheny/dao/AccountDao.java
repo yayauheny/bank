@@ -52,7 +52,12 @@ public class AccountDao implements Dao<Integer, Account> {
     private static final String WITHDRAW_MONEY = """
             UPDATE account
             SET balance = balance - ?
-            WHERE id = ?
+            WHERE id = ?;
+            """;
+    private static final String REPLENISH_MONEY = """
+            UPDATE account
+            SET balance = balance + ?
+            WHERE id = ?;
             """;
 
     @Override
@@ -144,12 +149,12 @@ public class AccountDao implements Dao<Integer, Account> {
             connection = ConnectionManager.getConnection();
             connection.setAutoCommit(false);
 
-            try (PreparedStatement preparedStatement = connection.prepareStatement(WITHDRAW_MONEY)) {
-                transactionDao.save(transaction, connection);
+            try {
+                Integer accountOwnerId = transaction.getReceiverAccountId();
+                BigDecimal amount = transaction.getAmount();
 
-                preparedStatement.setObject(1, transaction.getAmount());
-                preparedStatement.setObject(2, transaction.getReceiverAccountId());
-                preparedStatement.executeUpdate();
+                transactionDao.save(transaction, connection);
+                updateAccountBalance(connection, accountOwnerId, amount, WITHDRAW_MONEY);
 
                 connection.commit();
             } catch (SQLException e) {
@@ -169,7 +174,79 @@ public class AccountDao implements Dao<Integer, Account> {
         }
     }
 
+    public void replenishMoney(Transaction transaction) throws TransactionException {
+        Connection connection = null;
 
+        try {
+            connection = ConnectionManager.getConnection();
+            connection.setAutoCommit(false);
+
+            try {
+                Integer accountOwnerId = transaction.getReceiverAccountId();
+                BigDecimal amount = transaction.getAmount();
+
+                transactionDao.save(transaction, connection);
+                updateAccountBalance(connection, accountOwnerId, amount, REPLENISH_MONEY);
+
+                connection.commit();
+            } catch (SQLException e) {
+                connection.rollback();
+                throw new TransactionException(e);
+            }
+        } catch (SQLException e) {
+            throw new TransactionException(e);
+        } finally {
+            if (connection != null) {
+                try {
+                    connection.setAutoCommit(true);
+                } catch (SQLException e) {
+                    throw new RuntimeException(e);
+                }
+            }
+        }
+    }
+
+    public void sendMoney(Transaction transaction) throws TransactionException {
+        Connection connection = null;
+
+        try {
+            connection = ConnectionManager.getConnection();
+            connection.setAutoCommit(false);
+
+            try {
+                Integer senderAccountId = transaction.getSenderAccountId();
+                Integer receiverAccountId = transaction.getReceiverAccountId();
+                BigDecimal amount = transaction.getAmount();
+
+                transactionDao.save(transaction, connection);
+                updateAccountBalance(connection, senderAccountId, amount, WITHDRAW_MONEY);
+                updateAccountBalance(connection, receiverAccountId, amount, REPLENISH_MONEY);
+
+                connection.commit();
+            } catch (SQLException e) {
+                connection.rollback();
+                throw new TransactionException(e);
+            }
+        } catch (SQLException e) {
+            throw new TransactionException(e);
+        } finally {
+            if (connection != null) {
+                try {
+                    connection.setAutoCommit(true);
+                } catch (SQLException e) {
+                    throw new RuntimeException(e);
+                }
+            }
+        }
+    }
+
+    private void updateAccountBalance(Connection connection, Integer userId, BigDecimal amount, String sqlQuery) throws SQLException {
+        try (PreparedStatement preparedStatement = connection.prepareStatement(sqlQuery)) {
+            preparedStatement.setObject(1, amount);
+            preparedStatement.setObject(2, userId);
+            preparedStatement.executeUpdate();
+        }
+    }
 
     private Account buildAccount(ResultSet resultSet) throws SQLException {
         return Account.builder()
