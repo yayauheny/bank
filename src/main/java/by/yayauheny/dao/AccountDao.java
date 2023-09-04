@@ -179,7 +179,7 @@ public class AccountDao implements Dao<Integer, Account> {
         }
     }
 
-    public void withdrawMoney(TransactionDao transactionDao, Transaction transaction) throws TransactionException {
+    public void withdraw(TransactionDao transactionDao, Transaction transaction) throws TransactionException {
         Connection connection = null;
 
         try {
@@ -211,7 +211,7 @@ public class AccountDao implements Dao<Integer, Account> {
         }
     }
 
-    public void replenishMoney(TransactionDao transactionDao, Transaction transaction) throws TransactionException {
+    public void deposit(TransactionDao transactionDao, Transaction transaction) throws TransactionException {
         Connection connection = null;
 
         try {
@@ -243,7 +243,7 @@ public class AccountDao implements Dao<Integer, Account> {
         }
     }
 
-    public void sendMoney(TransactionDao transactionDao, Transaction transaction) throws TransactionException {
+    public void transferMoney(TransactionDao transactionDao, Transaction transaction, BigDecimal convertedAmount) throws TransactionException {
         Connection connection = null;
 
         try {
@@ -257,7 +257,7 @@ public class AccountDao implements Dao<Integer, Account> {
 
                 transactionDao.save(transaction, connection);
                 updateAccountBalance(connection, senderAccountId, amount, WITHDRAW_MONEY);
-                updateAccountBalance(connection, receiverAccountId, amount, REPLENISH_MONEY);
+                updateAccountBalance(connection, receiverAccountId, convertedAmount, REPLENISH_MONEY);
 
                 connection.commit();
             } catch (SQLException e) {

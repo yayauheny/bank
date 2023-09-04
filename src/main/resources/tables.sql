@@ -40,7 +40,6 @@ CREATE TABLE transaction
 (
     id                  INT GENERATED ALWAYS AS IDENTITY PRIMARY KEY,
     type                VARCHAR(10)    NOT NULL CHECK (type IN ('TRANSFER', 'DEPOSIT', 'WITHDRAWAL')),
-    status              VARCHAR(10) CHECK (status IN ('IN_PROCESS', 'COMPLETED', 'CANCELLED')),
     description         VARCHAR(128)   NOT NULL,
     amount              NUMERIC(16, 2) NOT NULL,
     created_at          TIMESTAMP      NOT NULL,

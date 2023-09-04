@@ -4,20 +4,18 @@ import by.yayauheny.dao.BankDao;
 import by.yayauheny.entity.Bank;
 import by.yayauheny.exception.InvalidIdException;
 import by.yayauheny.util.Validator;
+import lombok.AllArgsConstructor;
 
 import java.util.List;
 import java.util.Optional;
 
+@AllArgsConstructor
 public class BankService implements Service<Integer, Bank> {
 
     private final BankDao bankDao;
 
-    public BankService(BankDao bankDao) {
-        this.bankDao = bankDao;
-    }
-
     @Override
-    public Optional<Bank> findById(Integer id) {
+    public Optional<Bank> findById(Integer id) throws InvalidIdException {
         Validator.validateId(id);
 
         return bankDao.findById(id);
@@ -25,23 +23,21 @@ public class BankService implements Service<Integer, Bank> {
 
     @Override
     public List<Bank> findAll() {
-        return null;
+        return bankDao.findAll();
     }
 
     @Override
     public Bank save(Bank bank) {
-        return null;
+        return bankDao.save(bank);
     }
 
     @Override
     public void update(Bank bank) {
-
+        bankDao.update(bank);
     }
 
     @Override
     public boolean delete(Integer id) {
-        return false;
+        return bankDao.delete(id);
     }
-
-
 }

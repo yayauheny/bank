@@ -24,6 +24,10 @@ public class CurrencyDao implements Dao<Integer, Currency> {
             SELECT * FROM currency
             WHERE id=?;
             """;
+    private static final String FIND_BY_CODE = """
+            SELECT * FROM currency
+            WHERE currency_code=?;
+            """;
     private static final String FIND_ALL_BY_ID = """
             SELECT * FROM currency;
             """;
@@ -49,6 +53,20 @@ public class CurrencyDao implements Dao<Integer, Currency> {
              PreparedStatement preparedStatement = connection.prepareStatement(FIND_BY_ID)) {
 
             preparedStatement.setObject(1, id);
+            ResultSet resultSet = preparedStatement.executeQuery();
+
+            return resultSet.next()
+                    ? Optional.of(buildCurrency(resultSet))
+                    : Optional.empty();
+        }
+    }
+
+    @SneakyThrows
+    public Optional<Currency> findByCode(String code) {
+        try (Connection connection = ConnectionManager.getConnection();
+             PreparedStatement preparedStatement = connection.prepareStatement(FIND_BY_CODE)) {
+
+            preparedStatement.setString(1, code);
             ResultSet resultSet = preparedStatement.executeQuery();
 
             return resultSet.next()

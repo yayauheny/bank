@@ -33,7 +33,6 @@ public class TransactionDao implements Dao<Integer, Transaction> {
             SELECT * FROM transaction
             WHERE (transaction.receiver_account_id = ?
                OR transaction.sender_account_id = ?)
-              AND transaction.status = 'COMPLETED'
             """;
     private static final String SAVE = """
             INSERT INTO transaction(type, description, amount, created_at, currency_id, receiver_account_id, sender_account_id)
