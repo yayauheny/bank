@@ -12,7 +12,6 @@ public class Transaction {
 
     private Integer id;
     private TransactionType type;
-    private TransactionStatus status;
     private BigDecimal amount;
     private String description;
     private Integer currencyId;

@@ -297,29 +297,21 @@ public class AccountDao implements Dao<Integer, Account> {
     }
 
     private Account buildAccountWithBankAndCurrency(ResultSet resultSet) throws SQLException {
-        Bank bank = Bank.builder()
+        Account account = buildAccount(resultSet);
+
+        account.setBank(Bank.builder()
                 .id(resultSet.getObject("bank_id", Integer.class))
                 .name(resultSet.getString("bank_name"))
                 .address(resultSet.getString("bank_address"))
                 .department(resultSet.getString("bank_department"))
-                .build();
-
-        Currency currency = Currency.builder()
+                .build());
+        account.setCurrency(Currency.builder()
                 .id(resultSet.getObject("currency_id", Integer.class))
                 .currencyCode(resultSet.getString("currency_currency_code"))
                 .currencyRate(resultSet.getBigDecimal("currency_currency_rate"))
-                .build();
+                .build());
 
-        return Account.builder()
-                .id(resultSet.getObject("id", Integer.class))
-                .bankId(bank.getId())
-                .userId(resultSet.getObject("user_id", Integer.class))
-                .currencyId(currency.getId())
-                .balance(resultSet.getBigDecimal("balance"))
-                .createdAt(resultSet.getObject("created_at", LocalDate.class))
-                .bank(bank)
-                .currency(currency)
-                .build();
+        return account;
     }
 
     public static AccountDao getInstance() {
