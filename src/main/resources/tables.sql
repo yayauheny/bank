@@ -40,7 +40,6 @@ CREATE TABLE transaction
 (
     id                  INT GENERATED ALWAYS AS IDENTITY PRIMARY KEY,
     type                VARCHAR(10)    NOT NULL CHECK (type IN ('TRANSFER', 'DEPOSIT', 'WITHDRAWAL')),
-    description         VARCHAR(128)   NOT NULL,
     amount              NUMERIC(16, 2) NOT NULL,
     created_at          TIMESTAMP      NOT NULL,
     currency_id         INT            NOT NULL REFERENCES currency (id)

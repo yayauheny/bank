@@ -1,7 +1,6 @@
 package by.yayauheny.dao;
 
 import by.yayauheny.entity.Transaction;
-import by.yayauheny.entity.TransactionType;
 import by.yayauheny.util.ConnectionManager;
 import lombok.AccessLevel;
 import lombok.NoArgsConstructor;
@@ -35,13 +34,12 @@ public class TransactionDao implements Dao<Integer, Transaction> {
                OR transaction.sender_account_id = ?)
             """;
     private static final String SAVE = """
-            INSERT INTO transaction(type, description, amount, created_at, currency_id, receiver_account_id, sender_account_id)
-            VALUES (?,?,?,?,?,?,?)
+            INSERT INTO transaction(type, amount, created_at, currency_id, receiver_account_id, sender_account_id)
+            VALUES (?,?,?,?,?,?)
             """;
     private static final String UPDATE = """
             UPDATE transaction
             SET type = ?,
-                description = ?,
                 amount = ?,
                 created_at = ?,
                 currency_id = ?,
@@ -111,12 +109,11 @@ public class TransactionDao implements Dao<Integer, Transaction> {
              PreparedStatement preparedStatement = connection.prepareStatement(SAVE, Statement.RETURN_GENERATED_KEYS)) {
 
             preparedStatement.setString(1, transaction.getType().name());
-            preparedStatement.setString(2, transaction.getDescription());
-            preparedStatement.setBigDecimal(3, transaction.getAmount());
-            preparedStatement.setObject(4, transaction.getCreatedAt());
-            preparedStatement.setObject(5, transaction.getCurrencyId());
-            preparedStatement.setObject(6, transaction.getReceiverAccountId());
-            preparedStatement.setObject(7, transaction.getSenderAccountId());
+            preparedStatement.setBigDecimal(2, transaction.getAmount());
+            preparedStatement.setObject(3, transaction.getCreatedAt());
+            preparedStatement.setObject(4, transaction.getCurrencyId());
+            preparedStatement.setObject(5, transaction.getReceiverAccountId());
+            preparedStatement.setObject(6, transaction.getSenderAccountId());
 
             preparedStatement.executeUpdate();
             ResultSet keys = preparedStatement.getGeneratedKeys();
@@ -133,12 +130,11 @@ public class TransactionDao implements Dao<Integer, Transaction> {
         try (PreparedStatement preparedStatement = connection.prepareStatement(SAVE, Statement.RETURN_GENERATED_KEYS)) {
 
             preparedStatement.setString(1, transaction.getType().name());
-            preparedStatement.setString(2, transaction.getDescription());
-            preparedStatement.setBigDecimal(3, transaction.getAmount());
-            preparedStatement.setObject(4, transaction.getCreatedAt());
-            preparedStatement.setObject(5, transaction.getCurrencyId());
-            preparedStatement.setObject(6, transaction.getReceiverAccountId());
-            preparedStatement.setObject(7, transaction.getSenderAccountId());
+            preparedStatement.setBigDecimal(2, transaction.getAmount());
+            preparedStatement.setObject(3, transaction.getCreatedAt());
+            preparedStatement.setObject(4, transaction.getCurrencyId());
+            preparedStatement.setObject(5, transaction.getReceiverAccountId());
+            preparedStatement.setObject(6, transaction.getSenderAccountId());
 
             preparedStatement.executeUpdate();
             ResultSet keys = preparedStatement.getGeneratedKeys();
@@ -158,13 +154,12 @@ public class TransactionDao implements Dao<Integer, Transaction> {
              PreparedStatement preparedStatement = connection.prepareStatement(UPDATE)) {
 
             preparedStatement.setString(1, transaction.getType().name());
-            preparedStatement.setString(2, transaction.getDescription());
-            preparedStatement.setBigDecimal(3, transaction.getAmount());
-            preparedStatement.setObject(4, transaction.getCreatedAt());
-            preparedStatement.setObject(5, transaction.getCurrencyId());
-            preparedStatement.setObject(6, transaction.getReceiverAccountId());
-            preparedStatement.setObject(7, transaction.getSenderAccountId());
-            preparedStatement.setObject(8, transaction.getId());
+            preparedStatement.setBigDecimal(2, transaction.getAmount());
+            preparedStatement.setObject(3, transaction.getCreatedAt());
+            preparedStatement.setObject(4, transaction.getCurrencyId());
+            preparedStatement.setObject(5, transaction.getReceiverAccountId());
+            preparedStatement.setObject(6, transaction.getSenderAccountId());
+            preparedStatement.setObject(7, transaction.getId());
 
             preparedStatement.executeUpdate();
         }
@@ -183,8 +178,7 @@ public class TransactionDao implements Dao<Integer, Transaction> {
 
     private Transaction buildTransaction(ResultSet resultSet) throws SQLException {
         return Transaction.builder()
-                .type(TransactionType.valueOf(resultSet.getString("type")))
-                .description(resultSet.getString("description"))
+                .type(resultSet.getString("type"))
                 .amount(resultSet.getBigDecimal("amount"))
                 .createdAt(resultSet.getObject("created_at", LocalDate.class))
                 .currencyId(resultSet.getObject("currency_id", Integer.class))
