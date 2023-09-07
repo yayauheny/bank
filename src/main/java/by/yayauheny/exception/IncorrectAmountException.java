@@ -1,8 +1,8 @@
 package by.yayauheny.exception;
 
-public class IncorrectAmountException extends Exception {
+public class IncorrectAmountException extends IllegalArgumentException {
     public IncorrectAmountException() {
-        super("Cannot perform transaction, incorrect amount");
+        super("Incorrect amount has been passed, try again");
     }
 
     public IncorrectAmountException(String message) {

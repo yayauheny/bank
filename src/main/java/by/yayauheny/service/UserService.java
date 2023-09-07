@@ -2,7 +2,6 @@ package by.yayauheny.service;
 
 import by.yayauheny.dao.UserDao;
 import by.yayauheny.entity.User;
-import by.yayauheny.exception.InvalidIdException;
 import by.yayauheny.util.Validator;
 import lombok.AllArgsConstructor;
 
@@ -14,8 +13,12 @@ public class UserService implements Service<Integer, User>{
 
     private final UserDao userDao;
 
+    public UserService() {
+        this.userDao = UserDao.getInstance();
+    }
+
     @Override
-    public Optional<User> findById(Integer id) throws InvalidIdException {
+    public Optional<User> findById(Integer id) {
         Validator.validateId(id);
 
         return userDao.findById(id);

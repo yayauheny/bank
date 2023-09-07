@@ -20,7 +20,7 @@ import java.util.Optional;
 @NoArgsConstructor(access = AccessLevel.PRIVATE)
 public class UserDao implements Dao<Integer, User> {
 
-    public static final UserDao userDao = new UserDao();
+    private static final UserDao userDao = new UserDao();
     private static final String FIND_BY_ID = """
             SELECT * FROM users
             WHERE id=?;

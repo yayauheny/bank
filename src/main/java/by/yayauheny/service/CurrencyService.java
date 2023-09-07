@@ -3,7 +3,7 @@ package by.yayauheny.service;
 import by.yayauheny.dao.CurrencyDao;
 import by.yayauheny.entity.Currency;
 import by.yayauheny.entity.Transaction;
-import by.yayauheny.exception.InvalidIdException;
+import by.yayauheny.entity.TransactionType;
 import by.yayauheny.util.Validator;
 import lombok.AllArgsConstructor;
 
@@ -16,8 +16,12 @@ public class CurrencyService implements Service<Integer, Currency> {
 
     private final CurrencyDao currencyDao;
 
+    public CurrencyService() {
+        this.currencyDao = CurrencyDao.getInstance();
+    }
+
     @Override
-    public Optional<Currency> findById(Integer id) throws InvalidIdException {
+    public Optional<Currency> findById(Integer id) {
         Validator.validateId(id);
 
         return currencyDao.findById(id);
@@ -47,14 +51,18 @@ public class CurrencyService implements Service<Integer, Currency> {
         return currencyDao.delete(id);
     }
 
+    //TODO:replace with transaction DTO
     public BigDecimal convertTransactionAmount(Transaction transaction) {
+        TransactionType transactionType = transaction.getType();
         BigDecimal amount = transaction.getAmount();
-        Currency receiverCurrency = transaction.getReceiver().getCurrency();
 
-        return switch (transaction.getType()) {
-            case TRANSFER -> convertTransferAmount(transaction.getSender().getCurrency(), receiverCurrency, amount);
-            case DEPOSIT, WITHDRAWAL -> convertToByn(receiverCurrency, amount);
-        };
+        if (transactionType.equals(TransactionType.TRANSFER)) {
+            Currency receiverCurrency = transaction.getReceiver().getCurrency();
+            Currency senderCurrency = transaction.getSender().getCurrency();
+            return convertTransferAmount(senderCurrency, receiverCurrency, amount);
+        } else {
+            return amount;
+        }
     }
 
     private BigDecimal convertToByn(Currency currency, BigDecimal amount) {

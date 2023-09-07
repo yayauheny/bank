@@ -1,8 +1,10 @@
 package by.yayauheny.exception;
 
-public class TransactionException extends Exception {
+import com.sun.jdi.InternalException;
+
+public class TransactionException extends InternalException {
     public TransactionException(Throwable cause) {
-        super("Exception while processing transaction. Try again", cause);
+        super("Exception while processing transaction. Try again");
     }
 
     public TransactionException(String message) {

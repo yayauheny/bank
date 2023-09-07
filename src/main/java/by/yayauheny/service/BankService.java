@@ -2,7 +2,6 @@ package by.yayauheny.service;
 
 import by.yayauheny.dao.BankDao;
 import by.yayauheny.entity.Bank;
-import by.yayauheny.exception.InvalidIdException;
 import by.yayauheny.util.Validator;
 import lombok.AllArgsConstructor;
 
@@ -14,8 +13,12 @@ public class BankService implements Service<Integer, Bank> {
 
     private final BankDao bankDao;
 
+    public BankService() {
+        this.bankDao = BankDao.getInstance();
+    }
+
     @Override
-    public Optional<Bank> findById(Integer id) throws InvalidIdException {
+    public Optional<Bank> findById(Integer id) {
         Validator.validateId(id);
 
         return bankDao.findById(id);

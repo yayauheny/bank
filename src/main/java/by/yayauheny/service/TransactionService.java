@@ -15,7 +15,11 @@ public class TransactionService {
 
     private final TransactionDao transactionDao;
 
-    public Optional<Transaction> findById(Integer id) throws InvalidIdException {
+    public TransactionService() {
+        this.transactionDao = TransactionDao.getInstance();
+    }
+
+    public Optional<Transaction> findById(Integer id) {
         Validator.validateId(id);
 
         return transactionDao.findById(id);

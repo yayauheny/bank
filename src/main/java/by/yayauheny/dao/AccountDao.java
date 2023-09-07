@@ -74,17 +74,6 @@ public class AccountDao implements Dao<Integer, Account> {
             WHERE id = ?;
             """;
 
-    private static final String WITHDRAW_MONEY = """
-            UPDATE account
-            SET balance = balance - ?
-            WHERE id = ?;
-            """;
-    private static final String REPLENISH_MONEY = """
-            UPDATE account
-            SET balance = balance + ?
-            WHERE id = ?;
-            """;
-
     @Override
     @SneakyThrows
     public Optional<Account> findById(Integer id) {
@@ -227,10 +216,12 @@ public class AccountDao implements Dao<Integer, Account> {
                 Integer senderAccountId = transaction.getSenderAccountId();
                 Integer receiverAccountId = transaction.getReceiverAccountId();
                 BigDecimal amount = transaction.getAmount();
+                BigDecimal updatedSenderBalance = transaction.getSender().getBalance().subtract(amount);
+                BigDecimal updatedReceiverBalance = transaction.getReceiver().getBalance().add(convertedAmount);
 
                 transactionDao.save(transaction, connection);
-                updateAccountBalance(connection, senderAccountId, amount, WITHDRAW_MONEY);
-                updateAccountBalance(connection, receiverAccountId, convertedAmount, REPLENISH_MONEY);
+                updateAccountBalance(connection, senderAccountId, updatedSenderBalance);
+                updateAccountBalance(connection, receiverAccountId, updatedReceiverBalance);
 
                 connection.commit();
             } catch (SQLException e) {
