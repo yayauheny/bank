@@ -30,8 +30,9 @@ public class TransactionDao implements Dao<Integer, Transaction> {
             """;
     private static final String FIND_ALL_BY_ACCOUNT_ID = """
             SELECT * FROM transaction
-            WHERE (transaction.receiver_account_id = ?
-               OR transaction.sender_account_id = ?)
+            WHERE (receiver_account_id = ?
+               OR sender_account_id = ?)
+               AND (created_at > ? AND created_at < ?)
             """;
     private static final String SAVE = """
             INSERT INTO transaction(type, amount, created_at, currency_id, receiver_account_id, sender_account_id)
@@ -85,12 +86,15 @@ public class TransactionDao implements Dao<Integer, Transaction> {
     }
 
     @SneakyThrows
-    public List<Transaction> findAllByAccountId(Integer accountId) {
+    public List<Transaction> findAllByPeriod(Integer accountId, LocalDate from, LocalDate to) {
         try (Connection connection = ConnectionManager.getConnection();
              PreparedStatement preparedStatement = connection.prepareStatement(FIND_ALL_BY_ACCOUNT_ID)) {
 
             preparedStatement.setObject(1, accountId);
             preparedStatement.setObject(2, accountId);
+            preparedStatement.setObject(3, from);
+            preparedStatement.setObject(4, to);
+
             ResultSet resultSet = preparedStatement.executeQuery();
             List<Transaction> transactions = new ArrayList<>();
 
@@ -101,6 +105,7 @@ public class TransactionDao implements Dao<Integer, Transaction> {
             return transactions;
         }
     }
+
 
     @Override
     @SneakyThrows
@@ -125,6 +130,7 @@ public class TransactionDao implements Dao<Integer, Transaction> {
             return transaction;
         }
     }
+
     @SneakyThrows
     public Transaction save(Transaction transaction, Connection connection) {
         try (PreparedStatement preparedStatement = connection.prepareStatement(SAVE, Statement.RETURN_GENERATED_KEYS)) {

@@ -51,6 +51,11 @@ public class AccountDao implements Dao<Integer, Account> {
             INNER JOIN bank b ON b.id = a.bank_id
             WHERE user_id=?;
             """;
+
+    private static final String UPDATE_BALANCE = """
+            UPDATE account
+            SET balance = ?;
+            """;
     private static final String SAVE = """
             INSERT INTO account(bank_id, user_id, currency_id, balance, created_at)
             VALUES (?,?,?,?,?);
@@ -179,7 +184,7 @@ public class AccountDao implements Dao<Integer, Account> {
         }
     }
 
-    public void withdraw(TransactionDao transactionDao, Transaction transaction) throws TransactionException {
+    public void updateBalance(TransactionDao transactionDao, Transaction transaction) throws TransactionException {
         Connection connection = null;
 
         try {
@@ -191,39 +196,7 @@ public class AccountDao implements Dao<Integer, Account> {
                 BigDecimal amount = transaction.getAmount();
 
                 transactionDao.save(transaction, connection);
-                updateAccountBalance(connection, accountOwnerId, amount, WITHDRAW_MONEY);
-
-                connection.commit();
-            } catch (SQLException e) {
-                connection.rollback();
-                throw new TransactionException(e);
-            }
-        } catch (SQLException e) {
-            throw new TransactionException(e);
-        } finally {
-            if (connection != null) {
-                try {
-                    connection.setAutoCommit(true);
-                } catch (SQLException e) {
-                    throw new RuntimeException(e);
-                }
-            }
-        }
-    }
-
-    public void deposit(TransactionDao transactionDao, Transaction transaction) throws TransactionException {
-        Connection connection = null;
-
-        try {
-            connection = ConnectionManager.getConnection();
-            connection.setAutoCommit(false);
-
-            try {
-                Integer accountOwnerId = transaction.getReceiverAccountId();
-                BigDecimal amount = transaction.getAmount();
-
-                transactionDao.save(transaction, connection);
-                updateAccountBalance(connection, accountOwnerId, amount, REPLENISH_MONEY);
+                updateAccountBalance(connection, accountOwnerId, amount);
 
                 connection.commit();
             } catch (SQLException e) {
@@ -277,8 +250,8 @@ public class AccountDao implements Dao<Integer, Account> {
         }
     }
 
-    private void updateAccountBalance(Connection connection, Integer userId, BigDecimal amount, String sqlQuery) throws SQLException {
-        try (PreparedStatement preparedStatement = connection.prepareStatement(sqlQuery)) {
+    private void updateAccountBalance(Connection connection, Integer userId, BigDecimal amount) throws SQLException {
+        try (PreparedStatement preparedStatement = connection.prepareStatement(UPDATE_BALANCE)) {
             preparedStatement.setObject(1, amount);
             preparedStatement.setObject(2, userId);
             preparedStatement.executeUpdate();

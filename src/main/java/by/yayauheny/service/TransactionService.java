@@ -6,6 +6,7 @@ import by.yayauheny.exception.InvalidIdException;
 import by.yayauheny.util.Validator;
 import lombok.AllArgsConstructor;
 
+import java.time.LocalDate;
 import java.util.List;
 import java.util.Optional;
 
@@ -25,10 +26,10 @@ public class TransactionService {
     }
 
     //TODO: return DTO instead of Transaction
-    public List<Transaction> findAllByAccountId(Integer id) throws InvalidIdException {
+    public List<Transaction> findAllByPeriod(Integer id, LocalDate from, LocalDate to) throws InvalidIdException {
         Validator.validateId(id);
 
-        return transactionDao.findAllByAccountId(id);
+        return transactionDao.findAllByPeriod(id, from, to);
     }
 
 }

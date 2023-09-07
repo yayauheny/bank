@@ -33,7 +33,8 @@ CREATE TABLE account
     currency_id INT       NOT NULL REFERENCES currency (id)
         ON UPDATE CASCADE,
     balance     NUMERIC(16, 2),
-    created_at  TIMESTAMP NOT NULL
+    created_at  TIMESTAMP NOT NULL,
+    expiration_date TIMESTAMP NOT NULL
 );
 
 CREATE TABLE transaction
