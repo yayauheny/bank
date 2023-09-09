@@ -21,34 +21,18 @@ import java.util.Optional;
 public class UserDao implements Dao<Integer, User> {
 
     private static final UserDao userDao = new UserDao();
-    private static final String FIND_BY_ID = """
-            SELECT * FROM users
-            WHERE id=?;
-            """;
-    private static final String FIND_ALL_BY_ID = """
-            SELECT * FROM users;
-            """;
-    private static final String SAVE = """
-            INSERT INTO users(full_name, date_of_birth, address)
-            VALUES (?,?,?);
-            """;
-    private static final String UPDATE = """
-            UPDATE users
-            SET full_name = ?,
-                date_of_birth = ?,
-                address = ?
-            WHERE id = ?;
-            """;
-    private static final String DELETE_BY_ID = """
-            DELETE FROM users
-            WHERE id = ?;
-            """;
+
 
     @Override
     @SneakyThrows
     public Optional<User> findById(Integer id) {
+        String sqlFindById = """
+                SELECT * FROM users
+                WHERE id=?;
+                """;
+
         try (Connection connection = ConnectionManager.getConnection();
-             PreparedStatement preparedStatement = connection.prepareStatement(FIND_BY_ID)) {
+             PreparedStatement preparedStatement = connection.prepareStatement(sqlFindById)) {
 
             preparedStatement.setObject(1, id);
             ResultSet resultSet = preparedStatement.executeQuery();
@@ -62,8 +46,12 @@ public class UserDao implements Dao<Integer, User> {
     @Override
     @SneakyThrows
     public List<User> findAll() {
+        String sqlFindAll = """
+                SELECT * FROM users;
+                """;
+
         try (Connection connection = ConnectionManager.getConnection();
-             PreparedStatement preparedStatement = connection.prepareStatement(FIND_ALL_BY_ID)) {
+             PreparedStatement preparedStatement = connection.prepareStatement(sqlFindAll)) {
 
             ResultSet resultSet = preparedStatement.executeQuery();
             List<User> users = new ArrayList<>();
@@ -79,8 +67,13 @@ public class UserDao implements Dao<Integer, User> {
     @Override
     @SneakyThrows
     public User save(User user) {
+        String sqlSave = """
+                INSERT INTO users(full_name, date_of_birth, address)
+                VALUES (?,?,?);
+                """;
+
         try (Connection connection = ConnectionManager.getConnection();
-             PreparedStatement preparedStatement = connection.prepareStatement(SAVE, Statement.RETURN_GENERATED_KEYS)) {
+             PreparedStatement preparedStatement = connection.prepareStatement(sqlSave, Statement.RETURN_GENERATED_KEYS)) {
 
             preparedStatement.setString(1, user.getFullName());
             preparedStatement.setDate(2, Date.valueOf(user.getBirthDate()));
@@ -100,8 +93,16 @@ public class UserDao implements Dao<Integer, User> {
     @Override
     @SneakyThrows
     public void update(User user) {
+        String sqlUpdate = """
+                UPDATE users
+                SET full_name = ?,
+                    date_of_birth = ?,
+                    address = ?
+                WHERE id = ?;
+                """;
+
         try (Connection connection = ConnectionManager.getConnection();
-             PreparedStatement preparedStatement = connection.prepareStatement(UPDATE)) {
+             PreparedStatement preparedStatement = connection.prepareStatement(sqlUpdate)) {
 
             preparedStatement.setString(1, user.getFullName());
             preparedStatement.setDate(2, Date.valueOf(user.getBirthDate()));
@@ -115,8 +116,13 @@ public class UserDao implements Dao<Integer, User> {
     @Override
     @SneakyThrows
     public boolean delete(Integer id) {
+        String sqlDeleteById = """
+                DELETE FROM users
+                WHERE id = ?;
+                """;
+
         try (Connection connection = ConnectionManager.getConnection();
-             PreparedStatement preparedStatement = connection.prepareStatement(DELETE_BY_ID)) {
+             PreparedStatement preparedStatement = connection.prepareStatement(sqlDeleteById)) {
             preparedStatement.setObject(1, id);
 
             return preparedStatement.executeUpdate() > 0;

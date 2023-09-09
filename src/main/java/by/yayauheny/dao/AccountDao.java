@@ -17,6 +17,7 @@ import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.sql.Statement;
 import java.time.LocalDate;
+import java.time.LocalDateTime;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Optional;
@@ -26,65 +27,38 @@ public class AccountDao implements Dao<Integer, Account> {
 
     private static final AccountDao accountDao = new AccountDao();
 
-    private static final String FIND_BY_ID = """
-            SELECT * FROM account
-            WHERE id=?;
-            """;
-
-    private static final String FIND_ALL = """
-            SELECT * FROM account;
-            """;
-    private static final String FIND_ALL_BY_USER_ID = """
-            SELECT a.id AS id,
-                   a.user_id AS user_id,
-                   a.balance AS balance,
-                   a.created_at AS created_at,
-                   b.id AS bank_id,
-                   b.name AS bank_name,
-                   b.address AS bank_address,
-                   b.department AS bank_department,
-                   c.id AS currency_id,
-                   c.currency_code AS currency_currency_code,
-                   c.currency_rate AS currency_currency_rate
-            FROM account a
-            INNER JOIN currency c ON c.id = a.currency_id
-            INNER JOIN bank b ON b.id = a.bank_id
-            WHERE user_id=?;
-            """;
-
-    private static final String UPDATE_BALANCE = """
-            UPDATE account
-            SET balance = ?;
-            """;
-    private static final String SAVE = """
-            INSERT INTO account(bank_id, user_id, currency_id, balance, created_at)
-            VALUES (?,?,?,?,?);
-            """;
-    private static final String UPDATE = """
-            UPDATE account
-            SET bank_id = ?,
-                user_id = ?,
-                currency_id = ?,
-                balance = ?,
-                created_at = ?
-            WHERE id = ?;
-            """;
-    private static final String DELETE_BY_ID = """
-            DELETE FROM account
-            WHERE id = ?;
-            """;
-
     @Override
     @SneakyThrows
     public Optional<Account> findById(Integer id) {
+        String sqlFindById = """
+                SELECT a.id,
+                       b.id AS bank_id,
+                       u.id AS user_id,
+                       c.id AS currency_id,
+                       a.balance,
+                       a.created_at,
+                       a.expiration_date,
+                       b.name AS bank_name,
+                       b.address AS bank_address,
+                       b.department AS bank_department,
+                       c.currency_code AS currency_code,
+                       c.currency_rate AS currency_rate
+                FROM account a
+                         INNER JOIN currency c ON c.id = a.currency_id
+                         INNER JOIN bank b ON b.id = a.bank_id
+                         INNER JOIN users u ON u.id = a.user_id
+                WHERE a.id = ?;
+                                
+                """;
+
         try (Connection connection = ConnectionManager.getConnection();
-             PreparedStatement preparedStatement = connection.prepareStatement(FIND_BY_ID)) {
+             PreparedStatement preparedStatement = connection.prepareStatement(sqlFindById)) {
 
             preparedStatement.setObject(1, id);
             ResultSet resultSet = preparedStatement.executeQuery();
 
             return resultSet.next()
-                    ? Optional.of(buildAccount(resultSet))
+                    ? Optional.of(buildAccountWithBankAndCurrency(resultSet))
                     : Optional.empty();
         }
     }
@@ -92,14 +66,20 @@ public class AccountDao implements Dao<Integer, Account> {
     @Override
     @SneakyThrows
     public List<Account> findAll() {
+        String sqlFindAll = """
+                SELECT * FROM account a;
+                INNER JOIN currency c ON c.id = a.currency_id
+                INNER JOIN bank b ON b.id = a.bank_id
+                """;
+
         try (Connection connection = ConnectionManager.getConnection();
-             PreparedStatement preparedStatement = connection.prepareStatement(FIND_ALL)) {
+             PreparedStatement preparedStatement = connection.prepareStatement(sqlFindAll)) {
 
             ResultSet resultSet = preparedStatement.executeQuery();
             List<Account> accounts = new ArrayList<>();
 
             while (resultSet.next()) {
-                accounts.add(buildAccount(resultSet));
+                accounts.add(buildAccountWithBankAndCurrency(resultSet));
             }
 
             return accounts;
@@ -108,8 +88,15 @@ public class AccountDao implements Dao<Integer, Account> {
 
     @SneakyThrows
     public List<Account> findAllByUserId(Integer userId) {
+        String sqlFindUsersByAccountId = """
+                SELECT * FROM account a
+                INNER JOIN currency c ON c.id = a.currency_id
+                INNER JOIN bank b ON b.id = a.bank_id
+                WHERE user_id=?;
+                """;
+
         try (Connection connection = ConnectionManager.getConnection();
-             PreparedStatement preparedStatement = connection.prepareStatement(FIND_ALL_BY_USER_ID)) {
+             PreparedStatement preparedStatement = connection.prepareStatement(sqlFindUsersByAccountId)) {
 
             preparedStatement.setObject(1, userId);
             ResultSet resultSet = preparedStatement.executeQuery();
@@ -126,14 +113,20 @@ public class AccountDao implements Dao<Integer, Account> {
     @Override
     @SneakyThrows
     public Account save(Account account) {
+        String sqlSave = """
+                INSERT INTO account(bank_id, user_id, currency_id, balance, created_at, expiration_date)
+                VALUES (?,?,?,?,?,?);
+                """;
+
         try (Connection connection = ConnectionManager.getConnection();
-             PreparedStatement preparedStatement = connection.prepareStatement(SAVE, Statement.RETURN_GENERATED_KEYS)) {
+             PreparedStatement preparedStatement = connection.prepareStatement(sqlSave, Statement.RETURN_GENERATED_KEYS)) {
 
             preparedStatement.setObject(1, account.getBankId());
             preparedStatement.setObject(2, account.getUserId());
             preparedStatement.setObject(3, account.getCurrencyId());
             preparedStatement.setBigDecimal(4, account.getBalance());
             preparedStatement.setObject(5, account.getCreatedAt());
+            preparedStatement.setObject(6, account.getExpirationDate());
 
             preparedStatement.executeUpdate();
             ResultSet keys = preparedStatement.getGeneratedKeys();
@@ -149,14 +142,26 @@ public class AccountDao implements Dao<Integer, Account> {
     @Override
     @SneakyThrows
     public void update(Account account) {
+        String sqlUpdate = """
+                UPDATE account
+                SET bank_id = ?,
+                    user_id = ?,
+                    currency_id = ?,
+                    balance = ?,
+                    created_at = ?,
+                    expiration_date = ?
+                WHERE id = ?;
+                """;
+
         try (Connection connection = ConnectionManager.getConnection();
-             PreparedStatement preparedStatement = connection.prepareStatement(UPDATE)) {
+             PreparedStatement preparedStatement = connection.prepareStatement(sqlUpdate)) {
 
             preparedStatement.setObject(1, account.getBankId());
             preparedStatement.setObject(2, account.getCurrencyId());
             preparedStatement.setBigDecimal(3, account.getBalance());
             preparedStatement.setObject(4, account.getCreatedAt());
-            preparedStatement.setInt(5, account.getId());
+            preparedStatement.setObject(5, account.getExpirationDate());
+            preparedStatement.setInt(6, account.getId());
 
             preparedStatement.executeUpdate();
         }
@@ -165,8 +170,13 @@ public class AccountDao implements Dao<Integer, Account> {
     @Override
     @SneakyThrows
     public boolean delete(Integer id) {
+        String sqlDeleteById = """
+                DELETE FROM account
+                WHERE id = ?;
+                """;
+
         try (Connection connection = ConnectionManager.getConnection();
-             PreparedStatement preparedStatement = connection.prepareStatement(DELETE_BY_ID)) {
+             PreparedStatement preparedStatement = connection.prepareStatement(sqlDeleteById)) {
             preparedStatement.setObject(1, id);
 
             return preparedStatement.executeUpdate() > 0;
@@ -242,7 +252,12 @@ public class AccountDao implements Dao<Integer, Account> {
     }
 
     private void updateAccountBalance(Connection connection, Integer userId, BigDecimal amount) throws SQLException {
-        try (PreparedStatement preparedStatement = connection.prepareStatement(UPDATE_BALANCE)) {
+        String sqlUpdateBalance = """
+                UPDATE account
+                SET balance = ?;
+                """;
+
+        try (PreparedStatement preparedStatement = connection.prepareStatement(sqlUpdateBalance)) {
             preparedStatement.setObject(1, amount);
             preparedStatement.setObject(2, userId);
             preparedStatement.executeUpdate();
@@ -256,7 +271,8 @@ public class AccountDao implements Dao<Integer, Account> {
                 .userId(resultSet.getObject("user_id", Integer.class))
                 .currencyId(resultSet.getObject("currency_id", Integer.class))
                 .balance(resultSet.getObject("balance", BigDecimal.class))
-                .createdAt(resultSet.getObject("created_at", LocalDate.class))
+                .createdAt(resultSet.getObject("created_at", LocalDateTime.class))
+                .expirationDate(resultSet.getObject("expiration_date", LocalDateTime.class))
                 .build();
     }
 
@@ -264,15 +280,15 @@ public class AccountDao implements Dao<Integer, Account> {
         Account account = buildAccount(resultSet);
 
         account.setBank(Bank.builder()
-                .id(resultSet.getObject("bank_id", Integer.class))
+                .id(account.getBankId())
                 .name(resultSet.getString("bank_name"))
                 .address(resultSet.getString("bank_address"))
                 .department(resultSet.getString("bank_department"))
                 .build());
         account.setCurrency(Currency.builder()
-                .id(resultSet.getObject("currency_id", Integer.class))
-                .currencyCode(resultSet.getString("currency_currency_code"))
-                .currencyRate(resultSet.getBigDecimal("currency_currency_rate"))
+                .id(account.getCurrencyId())
+                .currencyCode(resultSet.getString("currency_code"))
+                .currencyRate(resultSet.getBigDecimal("currency_rate"))
                 .build());
 
         return account;

@@ -1,6 +1,7 @@
 package by.yayauheny.dao;
 
 import by.yayauheny.entity.Transaction;
+import by.yayauheny.entity.TransactionType;
 import by.yayauheny.util.ConnectionManager;
 import lombok.AccessLevel;
 import lombok.NoArgsConstructor;
@@ -12,6 +13,7 @@ import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.sql.Statement;
 import java.time.LocalDate;
+import java.time.LocalDateTime;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Optional;
@@ -20,44 +22,21 @@ import java.util.Optional;
 public class TransactionDao implements Dao<Integer, Transaction> {
 
     private static final TransactionDao transactionDao = new TransactionDao();
-
-    private static final String FIND_BY_ID = """
-            SELECT * FROM transaction
-            WHERE id=?;
-            """;
-    private static final String FIND_ALL_BY_ID = """
-            SELECT * FROM transaction;
-            """;
-    private static final String FIND_ALL_BY_ACCOUNT_ID = """
-            SELECT * FROM transaction
-            WHERE (receiver_account_id = ?
-               OR sender_account_id = ?)
-               AND (created_at > ? AND created_at < ?)
-            """;
     private static final String SAVE = """
             INSERT INTO transaction(type, amount, created_at, currency_id, receiver_account_id, sender_account_id)
             VALUES (?,?,?,?,?,?)
-            """;
-    private static final String UPDATE = """
-            UPDATE transaction
-            SET type = ?,
-                amount = ?,
-                created_at = ?,
-                currency_id = ?,
-                receiver_account_id = ?,
-                sender_account_id = ?
-            WHERE id = ?;
-            """;
-    private static final String DELETE_BY_ID = """
-            DELETE FROM transaction
-            WHERE id = ?;
             """;
 
     @Override
     @SneakyThrows
     public Optional<Transaction> findById(Integer id) {
+        String sqlFindById = """
+                SELECT * FROM transaction
+                WHERE id=?;
+                """;
+
         try (Connection connection = ConnectionManager.getConnection();
-             PreparedStatement preparedStatement = connection.prepareStatement(FIND_BY_ID)) {
+             PreparedStatement preparedStatement = connection.prepareStatement(sqlFindById)) {
 
             preparedStatement.setObject(1, id);
             ResultSet resultSet = preparedStatement.executeQuery();
@@ -71,8 +50,12 @@ public class TransactionDao implements Dao<Integer, Transaction> {
     @Override
     @SneakyThrows
     public List<Transaction> findAll() {
+        String sqlFindAll = """
+                SELECT * FROM transaction;
+                """;
+
         try (Connection connection = ConnectionManager.getConnection();
-             PreparedStatement preparedStatement = connection.prepareStatement(FIND_ALL_BY_ID)) {
+             PreparedStatement preparedStatement = connection.prepareStatement(sqlFindAll)) {
 
             ResultSet resultSet = preparedStatement.executeQuery();
             List<Transaction> transactions = new ArrayList<>();
@@ -86,9 +69,16 @@ public class TransactionDao implements Dao<Integer, Transaction> {
     }
 
     @SneakyThrows
-    public List<Transaction> findAllByPeriod(Integer accountId, LocalDate from, LocalDate to) {
+    public List<Transaction> findAllByAccountPeriod(Integer accountId, LocalDate from, LocalDate to) {
+        String sqlFindAllByAccountPeriod = """
+                SELECT * FROM transaction
+                WHERE (receiver_account_id = ?
+                   OR sender_account_id = ?)
+                   AND (created_at > ? AND created_at < ?)
+                """;
+
         try (Connection connection = ConnectionManager.getConnection();
-             PreparedStatement preparedStatement = connection.prepareStatement(FIND_ALL_BY_ACCOUNT_ID)) {
+             PreparedStatement preparedStatement = connection.prepareStatement(sqlFindAllByAccountPeriod)) {
 
             preparedStatement.setObject(1, accountId);
             preparedStatement.setObject(2, accountId);
@@ -156,8 +146,19 @@ public class TransactionDao implements Dao<Integer, Transaction> {
     @Override
     @SneakyThrows
     public void update(Transaction transaction) {
+        String sqlUpdate = """
+                UPDATE transaction
+                SET type = ?,
+                    amount = ?,
+                    created_at = ?,
+                    currency_id = ?,
+                    receiver_account_id = ?,
+                    sender_account_id = ?
+                WHERE id = ?;
+                """;
+
         try (Connection connection = ConnectionManager.getConnection();
-             PreparedStatement preparedStatement = connection.prepareStatement(UPDATE)) {
+             PreparedStatement preparedStatement = connection.prepareStatement(sqlUpdate)) {
 
             preparedStatement.setString(1, transaction.getType().name());
             preparedStatement.setBigDecimal(2, transaction.getAmount());
@@ -174,8 +175,13 @@ public class TransactionDao implements Dao<Integer, Transaction> {
     @Override
     @SneakyThrows
     public boolean delete(Integer id) {
+        String sqlDeleteById = """
+                DELETE FROM transaction
+                WHERE id = ?;
+                """;
+
         try (Connection connection = ConnectionManager.getConnection();
-             PreparedStatement preparedStatement = connection.prepareStatement(DELETE_BY_ID)) {
+             PreparedStatement preparedStatement = connection.prepareStatement(sqlDeleteById)) {
             preparedStatement.setObject(1, id);
 
             return preparedStatement.executeUpdate() > 0;
@@ -184,9 +190,9 @@ public class TransactionDao implements Dao<Integer, Transaction> {
 
     private Transaction buildTransaction(ResultSet resultSet) throws SQLException {
         return Transaction.builder()
-                .type(resultSet.getString("type"))
+                .type(TransactionType.valueOf(resultSet.getString("type")))
                 .amount(resultSet.getBigDecimal("amount"))
-                .createdAt(resultSet.getObject("created_at", LocalDate.class))
+                .createdAt(resultSet.getObject("created_at", LocalDateTime.class))
                 .currencyId(resultSet.getObject("currency_id", Integer.class))
                 .receiverAccountId(resultSet.getObject("receiver_account_id", Integer.class))
                 .senderAccountId(resultSet.getObject("sender_account_id", Integer.class))

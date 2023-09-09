@@ -20,37 +20,17 @@ import java.util.Optional;
 public class CurrencyDao implements Dao<Integer, Currency> {
 
     private static final CurrencyDao currencyDao = new CurrencyDao();
-    private static final String FIND_BY_ID = """
-            SELECT * FROM currency
-            WHERE id=?;
-            """;
-    private static final String FIND_BY_CODE = """
-            SELECT * FROM currency
-            WHERE currency_code=?;
-            """;
-    private static final String FIND_ALL_BY_ID = """
-            SELECT * FROM currency;
-            """;
-    private static final String SAVE = """
-            INSERT INTO currency(currency_code, currency_rate)
-            VALUES (?,?);
-            """;
-    private static final String UPDATE = """
-            UPDATE currency
-            SET currency_code = ?,
-                currency_rate = ?
-            WHERE id = ?;
-            """;
-    private static final String DELETE_BY_ID = """
-            DELETE FROM currency
-            WHERE id = ?;
-            """;
 
     @Override
     @SneakyThrows
     public Optional<Currency> findById(Integer id) {
+        String sqlFindById = """
+                SELECT * FROM currency
+                WHERE id=?;
+                """;
+
         try (Connection connection = ConnectionManager.getConnection();
-             PreparedStatement preparedStatement = connection.prepareStatement(FIND_BY_ID)) {
+             PreparedStatement preparedStatement = connection.prepareStatement(sqlFindById)) {
 
             preparedStatement.setObject(1, id);
             ResultSet resultSet = preparedStatement.executeQuery();
@@ -63,8 +43,13 @@ public class CurrencyDao implements Dao<Integer, Currency> {
 
     @SneakyThrows
     public Optional<Currency> findByCode(String code) {
+        String sqlFindByCode = """
+                SELECT * FROM currency
+                WHERE currency_code=?;
+                """;
+
         try (Connection connection = ConnectionManager.getConnection();
-             PreparedStatement preparedStatement = connection.prepareStatement(FIND_BY_CODE)) {
+             PreparedStatement preparedStatement = connection.prepareStatement(sqlFindByCode)) {
 
             preparedStatement.setString(1, code);
             ResultSet resultSet = preparedStatement.executeQuery();
@@ -78,8 +63,12 @@ public class CurrencyDao implements Dao<Integer, Currency> {
     @Override
     @SneakyThrows
     public List<Currency> findAll() {
+        String sqlFindAll = """
+                SELECT * FROM currency;
+                """;
+
         try (Connection connection = ConnectionManager.getConnection();
-             PreparedStatement preparedStatement = connection.prepareStatement(FIND_ALL_BY_ID)) {
+             PreparedStatement preparedStatement = connection.prepareStatement(sqlFindAll)) {
 
             ResultSet resultSet = preparedStatement.executeQuery();
             List<Currency> currencies = new ArrayList<>();
@@ -95,8 +84,13 @@ public class CurrencyDao implements Dao<Integer, Currency> {
     @Override
     @SneakyThrows
     public Currency save(Currency currency) {
+        String sqlSave = """
+                INSERT INTO currency(currency_code, currency_rate)
+                VALUES (?,?);
+                """;
+
         try (Connection connection = ConnectionManager.getConnection();
-             PreparedStatement preparedStatement = connection.prepareStatement(SAVE, Statement.RETURN_GENERATED_KEYS)) {
+             PreparedStatement preparedStatement = connection.prepareStatement(sqlSave, Statement.RETURN_GENERATED_KEYS)) {
 
             preparedStatement.setString(1, currency.getCurrencyCode());
             preparedStatement.setBigDecimal(2, currency.getCurrencyRate());
@@ -115,8 +109,15 @@ public class CurrencyDao implements Dao<Integer, Currency> {
     @Override
     @SneakyThrows
     public void update(Currency currency) {
+        String sqlUpdate = """
+                UPDATE currency
+                SET currency_code = ?,
+                    currency_rate = ?
+                WHERE id = ?;
+                """;
+
         try (Connection connection = ConnectionManager.getConnection();
-             PreparedStatement preparedStatement = connection.prepareStatement(UPDATE)) {
+             PreparedStatement preparedStatement = connection.prepareStatement(sqlUpdate)) {
 
             preparedStatement.setString(1, currency.getCurrencyCode());
             preparedStatement.setBigDecimal(2, currency.getCurrencyRate());
@@ -129,8 +130,13 @@ public class CurrencyDao implements Dao<Integer, Currency> {
     @Override
     @SneakyThrows
     public boolean delete(Integer id) {
+        String sqlDeleteById = """
+                DELETE FROM currency
+                WHERE id = ?;
+                """;
+
         try (Connection connection = ConnectionManager.getConnection();
-             PreparedStatement preparedStatement = connection.prepareStatement(DELETE_BY_ID)) {
+             PreparedStatement preparedStatement = connection.prepareStatement(sqlDeleteById)) {
             preparedStatement.setObject(1, id);
 
             return preparedStatement.executeUpdate() > 0;

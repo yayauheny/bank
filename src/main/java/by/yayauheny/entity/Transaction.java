@@ -1,12 +1,18 @@
 package by.yayauheny.entity;
 
+import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Data;
+import lombok.NoArgsConstructor;
 
 import java.math.BigDecimal;
 import java.time.LocalDate;
+import java.time.LocalDateTime;
 
 @Data
+@Builder
+@AllArgsConstructor
+@NoArgsConstructor
 public class Transaction {
 
     private Integer id;
@@ -20,19 +26,6 @@ public class Transaction {
     private Account receiver;
     private Account sender;
     @Builder.Default
-    private LocalDate createdAt = LocalDate.now();
-
-    @Builder
-    public Transaction(Integer id, String type, BigDecimal amount, Integer currencyId, Integer receiverAccountId, Integer senderAccountId, Currency currency, Account receiver, Account sender, LocalDate createdAt) {
-        this.id = id;
-        this.type = TransactionType.valueOf(type);
-        this.amount = amount;
-        this.currencyId = currencyId;
-        this.receiverAccountId = receiverAccountId;
-        this.senderAccountId = senderAccountId;
-        this.currency = currency;
-        this.receiver = receiver;
-        this.sender = sender;
-        this.createdAt = createdAt;
-    }
+    private LocalDateTime createdAt = LocalDateTime.now();
 }
+

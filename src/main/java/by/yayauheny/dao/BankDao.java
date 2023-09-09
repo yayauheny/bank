@@ -18,34 +18,17 @@ import java.util.Optional;
 @NoArgsConstructor(access = AccessLevel.PRIVATE)
 public class BankDao implements Dao<Integer, Bank> {
     private static final BankDao bankDao = new BankDao();
-    private static final String FIND_BY_ID = """
-            SELECT * FROM bank
-            WHERE id=?;
-            """;
-    private static final String FIND_ALL_BY_ID = """
-            SELECT * FROM bank;
-            """;
-    private static final String SAVE = """
-            INSERT INTO bank(name, address, department)
-            VALUES (?,?,?);
-            """;
-    private static final String UPDATE = """
-            UPDATE bank
-            SET name = ?,
-                address = ?,
-                department = ?
-            WHERE id = ?;
-            """;
-    private static final String DELETE_BY_ID = """
-            DELETE FROM bank
-            WHERE id = ?;
-            """;
 
     @Override
     @SneakyThrows
     public Optional<Bank> findById(Integer id) {
+        String sqlFindById = """
+                SELECT * FROM bank
+                WHERE id=?;
+                """;
+
         try (Connection connection = ConnectionManager.getConnection();
-             PreparedStatement preparedStatement = connection.prepareStatement(FIND_BY_ID)) {
+             PreparedStatement preparedStatement = connection.prepareStatement(sqlFindById)) {
 
             preparedStatement.setObject(1, id);
             ResultSet resultSet = preparedStatement.executeQuery();
@@ -59,8 +42,12 @@ public class BankDao implements Dao<Integer, Bank> {
     @Override
     @SneakyThrows
     public List<Bank> findAll() {
+        String sqlFindAll = """
+                SELECT * FROM bank;
+                """;
+
         try (Connection connection = ConnectionManager.getConnection();
-             PreparedStatement preparedStatement = connection.prepareStatement(FIND_ALL_BY_ID)) {
+             PreparedStatement preparedStatement = connection.prepareStatement(sqlFindAll)) {
 
             ResultSet resultSet = preparedStatement.executeQuery();
             List<Bank> banks = new ArrayList<>();
@@ -76,8 +63,13 @@ public class BankDao implements Dao<Integer, Bank> {
     @Override
     @SneakyThrows
     public Bank save(Bank bank) {
+        String sqlSave = """
+                INSERT INTO bank(name, address, department)
+                VALUES (?,?,?);
+                """;
+
         try (Connection connection = ConnectionManager.getConnection();
-             PreparedStatement preparedStatement = connection.prepareStatement(SAVE, Statement.RETURN_GENERATED_KEYS)) {
+             PreparedStatement preparedStatement = connection.prepareStatement(sqlSave, Statement.RETURN_GENERATED_KEYS)) {
 
             preparedStatement.setString(1, bank.getName());
             preparedStatement.setString(2, bank.getAddress());
@@ -97,8 +89,16 @@ public class BankDao implements Dao<Integer, Bank> {
     @Override
     @SneakyThrows
     public void update(Bank bank) {
+        String sqlUpdate = """
+                UPDATE bank
+                SET name = ?,
+                    address = ?,
+                    department = ?
+                WHERE id = ?;
+                """;
+
         try (Connection connection = ConnectionManager.getConnection();
-             PreparedStatement preparedStatement = connection.prepareStatement(UPDATE)) {
+             PreparedStatement preparedStatement = connection.prepareStatement(sqlUpdate)) {
 
             preparedStatement.setString(1, bank.getName());
             preparedStatement.setString(2, bank.getAddress());
@@ -112,8 +112,13 @@ public class BankDao implements Dao<Integer, Bank> {
     @Override
     @SneakyThrows
     public boolean delete(Integer id) {
+        String sqlDeleteById = """
+                DELETE FROM bank
+                WHERE id = ?;
+                """;
+
         try (Connection connection = ConnectionManager.getConnection();
-             PreparedStatement preparedStatement = connection.prepareStatement(DELETE_BY_ID)) {
+             PreparedStatement preparedStatement = connection.prepareStatement(sqlDeleteById)) {
             preparedStatement.setObject(1, id);
 
             return preparedStatement.executeUpdate() > 0;
