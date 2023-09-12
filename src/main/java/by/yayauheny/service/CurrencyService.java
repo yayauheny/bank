@@ -8,6 +8,7 @@ import by.yayauheny.util.Validator;
 import lombok.AllArgsConstructor;
 
 import java.math.BigDecimal;
+import java.math.RoundingMode;
 import java.util.List;
 import java.util.Optional;
 
@@ -57,8 +58,8 @@ public class CurrencyService implements Service<Integer, Currency> {
         BigDecimal amount = transaction.getAmount();
 
         if (transactionType.equals(TransactionType.TRANSFER)) {
-            Currency receiverCurrency = transaction.getReceiver().getCurrency();
-            Currency senderCurrency = transaction.getSender().getCurrency();
+            Currency senderCurrency = transaction.getSenderAccount().getCurrency();
+            Currency receiverCurrency = transaction.getReceiverAccount().getCurrency();
             return convertTransferAmount(senderCurrency, receiverCurrency, amount);
         } else {
             return amount;
@@ -70,7 +71,7 @@ public class CurrencyService implements Service<Integer, Currency> {
     }
 
     private BigDecimal convertFromByn(Currency currency, BigDecimal amount) {
-        return amount.multiply(currency.getCurrencyRate());
+        return amount.divide(currency.getCurrencyRate(), RoundingMode.HALF_UP);
     }
 
     private BigDecimal convertTransferAmount(Currency senderCurrency, Currency receiverCurrency, BigDecimal amount) {

@@ -10,7 +10,7 @@ import java.util.Objects;
 
 @UtilityClass
 public class ConnectionManager {
-    //"src/main/resources/application.properties"
+
     private static final HikariConfig config = new HikariConfig(
             Objects.requireNonNull(ConnectionManager.class.getResource("/application.properties")).getPath());
     private static final HikariDataSource ds = new HikariDataSource(config);
@@ -18,5 +18,4 @@ public class ConnectionManager {
     public static Connection getConnection() throws SQLException {
         return ds.getConnection();
     }
-
 }

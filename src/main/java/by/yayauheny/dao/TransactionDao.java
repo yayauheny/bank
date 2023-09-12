@@ -96,7 +96,6 @@ public class TransactionDao implements Dao<Integer, Transaction> {
         }
     }
 
-
     @Override
     @SneakyThrows
     public Transaction save(Transaction transaction) {
@@ -164,8 +163,8 @@ public class TransactionDao implements Dao<Integer, Transaction> {
             preparedStatement.setBigDecimal(2, transaction.getAmount());
             preparedStatement.setObject(3, transaction.getCreatedAt());
             preparedStatement.setObject(4, transaction.getCurrencyId());
-            preparedStatement.setObject(5, transaction.getReceiverAccountId());
-            preparedStatement.setObject(6, transaction.getSenderAccountId());
+            preparedStatement.setObject(5, transaction.getReceiverAccount().getId());
+            preparedStatement.setObject(6, transaction.getSenderAccount().getId());
             preparedStatement.setObject(7, transaction.getId());
 
             preparedStatement.executeUpdate();
@@ -194,8 +193,8 @@ public class TransactionDao implements Dao<Integer, Transaction> {
                 .amount(resultSet.getBigDecimal("amount"))
                 .createdAt(resultSet.getObject("created_at", LocalDateTime.class))
                 .currencyId(resultSet.getObject("currency_id", Integer.class))
-                .receiverAccountId(resultSet.getObject("receiver_account_id", Integer.class))
-                .senderAccountId(resultSet.getObject("sender_account_id", Integer.class))
+                .receiverAccountId(resultSet.getString("receiver_account_id"))
+                .senderAccountId(resultSet.getString("sender_account_id"))
                 .build();
     }
 

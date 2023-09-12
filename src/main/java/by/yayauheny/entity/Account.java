@@ -17,7 +17,7 @@ import java.util.List;
 @NoArgsConstructor
 public class Account {
 
-    private Integer id;
+    private String id;
     private Integer bankId;
     private Integer currencyId;
     private Integer userId;

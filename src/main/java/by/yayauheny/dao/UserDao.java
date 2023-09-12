@@ -22,7 +22,6 @@ public class UserDao implements Dao<Integer, User> {
 
     private static final UserDao userDao = new UserDao();
 
-
     @Override
     @SneakyThrows
     public Optional<User> findById(Integer id) {

@@ -30,10 +30,10 @@ public class TransactionService {
     }
 
     //TODO: return DTO instead of Transaction
-    public List<Transaction> findAllByPeriod(Integer accountId, LocalDate from, LocalDate to) throws InvalidIdException {
+    public List<Transaction> findAllByPeriod(Integer accountId, LocalDate from, LocalDate to) {
         Validator.validateId(accountId);
+        Validator.validateTransactionsPeriod(from, to);
 
         return transactionDao.findAllByAccountPeriod(accountId, from, to);
     }
-
 }

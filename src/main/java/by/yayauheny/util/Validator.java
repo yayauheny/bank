@@ -1,6 +1,7 @@
 package by.yayauheny.util;
 
 import by.yayauheny.entity.Account;
+import by.yayauheny.entity.Currency;
 import by.yayauheny.entity.Transaction;
 import by.yayauheny.entity.TransactionType;
 import by.yayauheny.exception.IncorrectAmountException;
@@ -18,16 +19,22 @@ public class Validator {
 
     public <T extends Number> boolean validateId(T id) {
         if (id == null || id.intValue() < 0) {
-            throw new InvalidIdException();
+            throw new InvalidIdException("Cannot find by id = " + id);
         }
 
         return true;
     }
 
+    public void validateAccountId(String id) {
+        if (!id.matches("^([A-Z\\d]{4}\\s){6}[A-Z\\d]{4}$")) {
+            throw new InvalidIdException("Cannot find account by id = " + id);
+        }
+    }
+
     //TODO:replace with transaction DTO
     public void validateTransactionFunds(Transaction transaction) {
-        Account sender = transaction.getSender();
-        Account receiver = transaction.getReceiver();
+        Account sender = transaction.getSenderAccount();
+        Account receiver = transaction.getReceiverAccount();
         BigDecimal transactionAmount = transaction.getAmount();
         TransactionType transactionType = transaction.getType();
 
@@ -53,8 +60,8 @@ public class Validator {
     }
 
     public void validateAmount(BigDecimal amount) {
-        if (amount.compareTo(BigDecimal.ZERO) < 0) {
-            throw new IncorrectAmountException("Cannot perform transaction, amount: " + amount + " is negative");
+        if (amount.compareTo(BigDecimal.ZERO) <= 0) {
+            throw new IncorrectAmountException("Cannot perform transaction, amount: " + amount + " is negative or zero");
         }
     }
 
@@ -63,6 +70,35 @@ public class Validator {
             throw new IncorrectPeriodException("Incorrect period has been passed, " + from + "is before " + to);
         } else if (to.isBefore(from)) {
             throw new IncorrectPeriodException("Incorrect period has been passed, " + to + "is after " + from);
+        }
+    }
+
+    public void validateTransactionReceiver(Account receiver) {
+        if (receiver == null) {
+            throw new TransactionException("Exception while processing transaction. Receiver is empty. Try again");
+        }
+    }
+
+    public void validateTransferParticipants(Account sender, Account receiver) {
+        if (sender == null || receiver == null) {
+            throw new TransactionException("Exception while processing transaction. Receiver is empty. Try again");
+        }
+    }
+
+    public void validateTransactionCurrency(Currency currency) {
+        if (currency == null) {
+            throw new TransactionException("Exception while processing transaction. Currency is empty. Try again");
+        }
+    }
+
+    public void validateTransaction(Transaction transaction) {
+        validateTransactionFunds(transaction);
+        validateTransactionCurrency(transaction.getCurrency());
+
+        if (transaction.getType().equals(TransactionType.TRANSFER)) {
+            validateTransferParticipants(transaction.getSenderAccount(), transaction.getReceiverAccount());
+        } else {
+            validateTransactionReceiver(transaction.getReceiverAccount());
         }
     }
 }

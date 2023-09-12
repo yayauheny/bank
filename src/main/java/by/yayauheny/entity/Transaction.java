@@ -6,7 +6,6 @@ import lombok.Data;
 import lombok.NoArgsConstructor;
 
 import java.math.BigDecimal;
-import java.time.LocalDate;
 import java.time.LocalDateTime;
 
 @Data
@@ -20,11 +19,11 @@ public class Transaction {
     @Builder.Default
     private BigDecimal amount = BigDecimal.ZERO;
     private Integer currencyId;
-    private Integer receiverAccountId;
-    private Integer senderAccountId;
+    private String receiverAccountId;
+    private String senderAccountId;
     private Currency currency;
-    private Account receiver;
-    private Account sender;
+    private Account receiverAccount;
+    private Account senderAccount;
     @Builder.Default
     private LocalDateTime createdAt = LocalDateTime.now();
 }
