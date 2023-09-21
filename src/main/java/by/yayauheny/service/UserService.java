@@ -3,19 +3,17 @@ package by.yayauheny.service;
 import by.yayauheny.dao.UserDao;
 import by.yayauheny.entity.User;
 import by.yayauheny.util.Validator;
-import lombok.AllArgsConstructor;
+import lombok.AccessLevel;
+import lombok.NoArgsConstructor;
 
 import java.util.List;
 import java.util.Optional;
 
-@AllArgsConstructor
-public class UserService implements Service<Integer, User>{
+@NoArgsConstructor(access = AccessLevel.PRIVATE)
+public class UserService implements Service<Integer, User> {
 
-    private final UserDao userDao;
-
-    public UserService() {
-        this.userDao = UserDao.getInstance();
-    }
+    private static UserService userService = new UserService();
+    private final UserDao userDao = UserDao.getInstance();
 
     @Override
     public Optional<User> findById(Integer id) {
@@ -42,5 +40,9 @@ public class UserService implements Service<Integer, User>{
     @Override
     public boolean delete(Integer id) {
         return userDao.delete(id);
+    }
+
+    public static UserService getInstance(){
+        return userService;
     }
 }

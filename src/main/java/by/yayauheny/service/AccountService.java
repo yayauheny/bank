@@ -4,32 +4,33 @@ import by.yayauheny.dao.AccountDao;
 import by.yayauheny.dao.TransactionDao;
 import by.yayauheny.entity.Account;
 import by.yayauheny.entity.Transaction;
+import by.yayauheny.entity.User;
 import by.yayauheny.exception.InvalidIdException;
 import by.yayauheny.util.Validator;
-import lombok.AllArgsConstructor;
+import lombok.AccessLevel;
+import lombok.NoArgsConstructor;
 
 import java.math.BigDecimal;
 import java.util.List;
 import java.util.Optional;
 
-@AllArgsConstructor
+@NoArgsConstructor(access = AccessLevel.PRIVATE)
 public class AccountService implements Service<String, Account> {
 
-    private final AccountDao accountDao;
-    private final TransactionDao transactionDao;
-    private final CurrencyService currencyService;
-
-    public AccountService() {
-        this.accountDao = AccountDao.getInstance();
-        this.transactionDao = TransactionDao.getInstance();
-        this.currencyService = new CurrencyService();
-    }
+    private final AccountDao accountDao = AccountDao.getInstance();
+    private final UserService userService = UserService.getInstance();
+    private final TransactionDao transactionDao = TransactionDao.getInstance();
+    private final CurrencyService currencyService = CurrencyService.getInstance();
+    private static final AccountService accountService = new AccountService();
 
     @Override
     public Optional<Account> findById(String id) throws InvalidIdException {
         Validator.validateAccountId(id);
 
-        return accountDao.findById(id);
+        Optional<Account> account = accountDao.findById(id);
+        Optional<User> user = userService.findById(account.get().getUserId());
+        account.get().setUser(user.get());
+        return account;
     }
 
     @Override
@@ -74,5 +75,9 @@ public class AccountService implements Service<String, Account> {
                 accountDao.updateBalance(transactionDao, transaction, transactionAmount);
             }
         }
+    }
+
+    public static AccountService getInstance() {
+        return accountService;
     }
 }

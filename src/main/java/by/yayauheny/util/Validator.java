@@ -2,17 +2,19 @@ package by.yayauheny.util;
 
 import by.yayauheny.entity.Account;
 import by.yayauheny.entity.Currency;
+import by.yayauheny.entity.Receipt;
 import by.yayauheny.entity.Transaction;
 import by.yayauheny.entity.TransactionType;
 import by.yayauheny.exception.IncorrectAmountException;
 import by.yayauheny.exception.IncorrectPeriodException;
 import by.yayauheny.exception.IncorrectTransactionTypeException;
 import by.yayauheny.exception.InvalidIdException;
+import by.yayauheny.exception.ReceiptBuildingException;
 import by.yayauheny.exception.TransactionException;
 import lombok.experimental.UtilityClass;
 
 import java.math.BigDecimal;
-import java.time.LocalDate;
+import java.time.LocalDateTime;
 
 @UtilityClass
 public class Validator {
@@ -65,7 +67,7 @@ public class Validator {
         }
     }
 
-    public void validateTransactionsPeriod(LocalDate from, LocalDate to) {
+    public void validateTransactionsPeriod(LocalDateTime from, LocalDateTime to) {
         if (from.isAfter(to)) {
             throw new IncorrectPeriodException("Incorrect period has been passed, " + from + "is before " + to);
         } else if (to.isBefore(from)) {
@@ -101,4 +103,27 @@ public class Validator {
             validateTransactionReceiver(transaction.getReceiverAccount());
         }
     }
+
+    public void validateReceiptForCheck(Receipt receipt) {
+        if (receipt.getTransactionType() == null
+            || receipt.getCreatedAt() == null
+            || receipt.getId() == null
+            || receipt.getReceiverAccount() == null
+            || receipt.getReceiverAccount().getBank() == null) {
+            throw new ReceiptBuildingException();
+        }
+    }
+
+    public void validateReceiptForMoneyStatement(Receipt receipt) {
+        validateReceiptForCheck(receipt);
+        if (receipt.getTransactionsFrom() == null || receipt.getTransactionsTo() == null) {
+            throw new ReceiptBuildingException();
+        }
+    }
+
+    //TODO: finish
+    public void validateReceiptForSummary(Receipt receipt) {
+
+    }
+
 }

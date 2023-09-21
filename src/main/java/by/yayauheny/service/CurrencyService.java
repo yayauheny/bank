@@ -5,21 +5,19 @@ import by.yayauheny.entity.Currency;
 import by.yayauheny.entity.Transaction;
 import by.yayauheny.entity.TransactionType;
 import by.yayauheny.util.Validator;
-import lombok.AllArgsConstructor;
+import lombok.AccessLevel;
+import lombok.NoArgsConstructor;
 
 import java.math.BigDecimal;
 import java.math.RoundingMode;
 import java.util.List;
 import java.util.Optional;
 
-@AllArgsConstructor
+@NoArgsConstructor(access = AccessLevel.PRIVATE)
 public class CurrencyService implements Service<Integer, Currency> {
 
-    private final CurrencyDao currencyDao;
-
-    public CurrencyService() {
-        this.currencyDao = CurrencyDao.getInstance();
-    }
+    private final CurrencyDao currencyDao = CurrencyDao.getInstance();
+    private static final CurrencyService currencyService = new CurrencyService();
 
     @Override
     public Optional<Currency> findById(Integer id) {
@@ -66,11 +64,11 @@ public class CurrencyService implements Service<Integer, Currency> {
         }
     }
 
-    private BigDecimal convertToByn(Currency currency, BigDecimal amount) {
+    public BigDecimal convertToByn(Currency currency, BigDecimal amount) {
         return amount.multiply(currency.getCurrencyRate());
     }
 
-    private BigDecimal convertFromByn(Currency currency, BigDecimal amount) {
+    public BigDecimal convertFromByn(Currency currency, BigDecimal amount) {
         return amount.divide(currency.getCurrencyRate(), RoundingMode.HALF_UP);
     }
 
@@ -80,5 +78,9 @@ public class CurrencyService implements Service<Integer, Currency> {
 
             return convertFromByn(receiverCurrency, convertedToByn);
         } else return amount;
+    }
+
+    public static CurrencyService getInstance() {
+        return currencyService;
     }
 }

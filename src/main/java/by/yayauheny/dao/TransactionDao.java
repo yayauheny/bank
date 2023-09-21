@@ -12,7 +12,6 @@ import java.sql.PreparedStatement;
 import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.sql.Statement;
-import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.util.ArrayList;
 import java.util.List;
@@ -69,19 +68,22 @@ public class TransactionDao implements Dao<Integer, Transaction> {
     }
 
     @SneakyThrows
-    public List<Transaction> findAllByAccountPeriod(Integer accountId, LocalDate from, LocalDate to) {
+    public List<Transaction> findAllByAccountPeriod(String accountId, LocalDateTime from, LocalDateTime to) {
         String sqlFindAllByAccountPeriod = """
-                SELECT * FROM transaction
+                SELECT * FROM transaction t
+                INNER JOIN currency c ON c.id = t.currency_id
+                INNER JOIN account sender ON sender.id = t.sender_account_id
+                INNER JOIN account receiver ON receiver.id = t.receiver_account_id
                 WHERE (receiver_account_id = ?
                    OR sender_account_id = ?)
-                   AND (created_at > ? AND created_at < ?)
+                   AND (t.created_at > ? AND t.created_at < ?)
                 """;
 
         try (Connection connection = ConnectionManager.getConnection();
              PreparedStatement preparedStatement = connection.prepareStatement(sqlFindAllByAccountPeriod)) {
 
-            preparedStatement.setObject(1, accountId);
-            preparedStatement.setObject(2, accountId);
+            preparedStatement.setString(1, accountId);
+            preparedStatement.setString(2, accountId);
             preparedStatement.setObject(3, from);
             preparedStatement.setObject(4, to);
 
@@ -187,8 +189,58 @@ public class TransactionDao implements Dao<Integer, Transaction> {
         }
     }
 
+    @SneakyThrows
+    public List<Transaction> findAllReplenishmentsByPeriod(String accountId, LocalDateTime from, LocalDateTime to) {
+        String sqlFindAllReplenishments = """
+                SELECT * FROM transaction t
+                INNER JOIN currency c ON c.id = t.currency_id
+                INNER JOIN account sender ON sender.id = t.sender_account_id
+                INNER JOIN account receiver ON receiver.id = t.receiver_account_id
+                WHERE (t.created_at > ? AND t.created_at < ?)
+                  AND (receiver_account_id = ? AND type = 'TRANSFER')
+                  OR (receiver_account_id = ? AND type = 'DEPOSIT')
+                """;
+        return findTransactionsByTypeAndPeriod(accountId, from, to, sqlFindAllReplenishments);
+    }
+
+    @SneakyThrows
+    public List<Transaction> findAllLossesByPeriod(String accountId, LocalDateTime from, LocalDateTime to) {
+        String sqlFindAllWithdraws = """
+                SELECT * FROM transaction t
+                INNER JOIN currency c ON c.id = t.currency_id
+                INNER JOIN account sender ON sender.id = t.sender_account_id
+                INNER JOIN account receiver ON receiver.id = t.receiver_account_id
+                WHERE (t.created_at > ? AND t.created_at < ?)
+                  AND (sender_account_id = ? AND type = 'TRANSFER')
+                  OR (receiver_account_id = ? AND type = 'WITHDRAWAL')
+                """;
+        return findTransactionsByTypeAndPeriod(accountId, from, to, sqlFindAllWithdraws);
+    }
+
+    @SneakyThrows
+    private List<Transaction> findTransactionsByTypeAndPeriod(String accountId, LocalDateTime from, LocalDateTime to, String sqlQuery) {
+        try (Connection connection = ConnectionManager.getConnection();
+             PreparedStatement preparedStatement = connection.prepareStatement(sqlQuery)) {
+
+            preparedStatement.setObject(1, from);
+            preparedStatement.setObject(2, to);
+            preparedStatement.setString(3, accountId);
+            preparedStatement.setString(4, accountId);
+
+            ResultSet resultSet = preparedStatement.executeQuery();
+            List<Transaction> transactions = new ArrayList<>();
+
+            while (resultSet.next()) {
+                transactions.add(buildTransaction(resultSet));
+            }
+
+            return transactions;
+        }
+    }
+
     private Transaction buildTransaction(ResultSet resultSet) throws SQLException {
         return Transaction.builder()
+                .id(resultSet.getObject("id", Integer.class))
                 .type(TransactionType.valueOf(resultSet.getString("type")))
                 .amount(resultSet.getBigDecimal("amount"))
                 .createdAt(resultSet.getObject("created_at", LocalDateTime.class))
